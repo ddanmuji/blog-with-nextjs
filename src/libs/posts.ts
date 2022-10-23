@@ -3,6 +3,7 @@ import * as path from 'path';
 import matter from 'gray-matter';
 import { remark } from 'remark';
 import html from 'remark-html';
+import { serialize } from 'next-mdx-remote/serialize';
 
 import type { Article } from '../types';
 
@@ -13,7 +14,7 @@ export function getSortedPostsData() {
   const fileNames = fs.readdirSync(postsDirectory);
 
   const allPostsData = fileNames.map((fileName) => {
-    const id = fileName.replace(/\.md$/, '');
+    const id = fileName.replace(/\.md$|\.mdx$/, '');
     const fullPath = path.join(postsDirectory, fileName);
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const matterResult = matter(fileContents);
@@ -33,23 +34,31 @@ export function getAllPostIds() {
   const fileNames = fs.readdirSync(postsDirectory);
 
   return fileNames.map((fileName) => ({
-    params: { id: fileName.replace(/\.md$/, '') },
+    params: { id: fileName.replace(/\.md$|\.mdx$/, '') },
   }));
 }
 
 /** @description 특정아티클 상세조회 함수 */
 export async function getPostData(id: string) {
-  const fullPath = path.join(postsDirectory, `${id}.md`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const matterResult = matter(fileContents);
-  const precessedContent = await remark().use(html).process(matterResult.content);
-  const contentHtml = precessedContent.toString();
+  const fullMdPath = path.join(postsDirectory, `${id}.md`);
+  const mdExist = fs.existsSync(fullMdPath);
 
-  return {
-    id,
-    contentHtml,
-    ...matterResult.data,
-  };
+  if (mdExist) {
+    const fullPath = path.join(postsDirectory, `${id}.md`);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const matterResult = matter(fileContents);
+    const precessedContent = await remark().use(html).process(matterResult.content);
+    const contentHtml = precessedContent.toString();
+
+    return { id, contentHtml, ...matterResult.data };
+  } else {
+    const fullPath = path.join(postsDirectory, `${id}.mdx`);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const matterResult = matter(fileContents);
+    const mdxSource = await serialize(matterResult.content);
+
+    return { id, mdxSource, ...matterResult.data };
+  }
 }
 
 /** @description 아티클 생성 함수 */

@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://jebong-blog.vercel.app/
+
+# Sitemaps
+Sitemap: https://jebong-blog.vercel.app/sitemap.xml

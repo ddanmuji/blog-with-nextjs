@@ -1,6 +1,8 @@
-import Link from 'next/link';
 import { ChangeEvent, useRef, useState } from 'react';
+import Link from 'next/link';
+
 import { Layout } from '../../components';
+import { PostApi } from '../../services';
 
 const PostWrite = () => {
   const [showLink, setshowLink] = useState(false);
@@ -9,7 +11,7 @@ const PostWrite = () => {
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!idRef.current || !titleRef.current || !contentRef.current) return;
@@ -19,24 +21,12 @@ const PostWrite = () => {
     const content = contentRef.current.value;
 
     if (id && title && content) {
-      fetch('/api/post/write', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          title,
-          content,
-        }),
-      })
-        .then((res) => {
-          if (res.ok) return res.json();
-          else throw new Error('Fetch Error');
-        })
-        .then((res) => {
-          console.log(res);
-          setshowLink(true);
-        })
-        .catch((error) => console.error(error));
+      try {
+        await PostApi.create({ id, title, content });
+        setshowLink(true);
+      } catch (error) {
+        setshowLink(false);
+      }
     }
   };
 

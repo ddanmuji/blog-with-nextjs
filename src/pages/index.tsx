@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { Date, Layout } from '../components';
 import { siteTitle } from '../components/Layout';
-import { getSortedPostsData } from '../libs/posts';
+import { posts } from '../libs';
 import utilStyles from '../styles/utils.module.css';
 
 interface HomeProps {
@@ -43,7 +43,7 @@ const Home: FC<HomeProps> = ({ allPostsData }) => {
 };
 
 export const getStaticProps: GetStaticProps = () => {
-  const allPostsData = getSortedPostsData();
+  const allPostsData = posts.getSortedPostsData();
 
   return {
     props: { allPostsData },

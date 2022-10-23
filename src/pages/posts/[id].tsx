@@ -2,9 +2,10 @@ import { FC } from 'react';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { MDXRemote } from 'next-mdx-remote';
 
-import { getAllPostIds, getPostData } from '../../libs/posts';
-import { Date, Layout } from '../../components';
+import { posts } from '../../libs';
+import { CodeBlock, Date, Layout } from '../../components';
 import utilStyles from '../../styles/utils.module.css';
 
 interface PostDetailProps {
@@ -13,8 +14,24 @@ interface PostDetailProps {
     id: string;
     date: string;
     contentHtml: string;
+    mdxSource: any;
   };
 }
+
+const Button = ({ children }: any) => {
+  return (
+    <button
+      className="bg-black dark:bg-white text-teal-200 dark:text-teal-700 text-lg  rounded-lg px-5"
+      onClick={() => {
+        console.log('test');
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
+const components = { Button, CodeBlock };
 
 const PostDetail: FC<PostDetailProps> = ({ postData }) => {
   const router = useRouter();
@@ -31,7 +48,8 @@ const PostDetail: FC<PostDetailProps> = ({ postData }) => {
         <div className={utilStyles.lightText}>
           <Date dateString={postData.date} />
         </div>
-        <div dangerouslySetInnerHTML={{ __html: postData.contentHtml }} />
+        {postData.contentHtml && <div dangerouslySetInnerHTML={{ __html: postData.contentHtml }} />}
+        {postData.mdxSource && <MDXRemote components={components} {...postData.mdxSource} />}
       </article>
     </Layout>
   );
@@ -39,14 +57,14 @@ const PostDetail: FC<PostDetailProps> = ({ postData }) => {
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   if (params) {
-    const postData = await getPostData(params.id as string);
+    const postData = await posts.getPostData(params.id as string);
 
     return { props: { postData } };
   } else return { props: {} };
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const paths = getAllPostIds();
+  const paths = posts.getAllPostIds();
 
   return { paths, fallback: true };
 };

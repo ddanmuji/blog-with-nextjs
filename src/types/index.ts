@@ -5,4 +5,8 @@ export type Article = {
   date: string;
 };
 
+export type CreateArticleBody = Omit<Article, 'date'>;
+
 export type ArticleList = Article[];
+
+export type Theme = 'light' | 'dark';
